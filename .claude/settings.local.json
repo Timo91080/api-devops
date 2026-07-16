@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem c:\\\\Users\\\\diket\\\\api-devops | Where-Object { $_.Name -ne \"venv\" -and $_.Name -ne \".git\" } | Select-Object Name, Mode)"
+    ]
+  }
+}

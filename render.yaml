@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: api-pokemon-devops
+    env: docker # C'est la clé : on dit à Render de construire notre Dockerfile !
+    plan: free
+    region: frankfurt # On choisit l'Europe pour que ce soit plus rapide
+    # La commande pour lancer uvicorn n'est pas nécessaire, Render la lira depuis notre Dockerfile

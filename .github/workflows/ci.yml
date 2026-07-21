@@ -1,0 +1,43 @@
+name: CI Pipeline
+
+# 1. Quand est-ce que ce pipeline s'exécute ?
+on:
+  push:
+    branches:
+      - main
+  pull_request: # une
+    branches:
+      - main
+
+# 2. Quels sont les travaux à effectuer ?
+jobs:
+  test-and-lint:
+    # 3. Sur quel système d'exploitation le robot doit-il tourner ?
+    runs-on: ubuntu-latest
+
+    # 4. Les étapes séquentielles
+    steps:
+      # Étape A : Le robot télécharge ton code depuis GitHub
+      - name: Récupérer le code source
+        uses: actions/checkout@v4
+
+      # Étape B : Le robot installe la bonne version de Python
+      - name: Installer Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip" # Optimisation : garde les dépendances en mémoire pour aller plus vite
+
+      # Étape C : Le robot installe tes dépendances
+      - name: Installer les dépendances
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Étape D : Le robot vérifie la propreté du code
+      - name: Lancer le Linter (Ruff)
+        run: ruff check .
+
+      # Étape E : Le robot lance tes tests unitaires
+      - name: Lancer les tests (Pytest)
+        run: pytest

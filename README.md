@@ -27,14 +27,14 @@ Le code métier est volontairement simple afin de concentrer les efforts sur l'*
 
 ## Stack Technique
 
-| Outil | Rôle |
-|---|---|
-| Python 3.11+ | Langage |
-| FastAPI | Framework web performant avec auto-documentation |
-| Uvicorn | Serveur ASGI |
-| Pydantic | Validation des données en temps réel |
-| pytest | Suite de tests unitaires |
-| Docker | Conteneurisation |
+| Outil        | Rôle                                             |
+| ------------ | ------------------------------------------------ |
+| Python 3.11+ | Langage                                          |
+| FastAPI      | Framework web performant avec auto-documentation |
+| Uvicorn      | Serveur ASGI                                     |
+| Pydantic     | Validation des données en temps réel             |
+| pytest       | Suite de tests unitaires                         |
+| Docker       | Conteneurisation                                 |
 
 ---
 
@@ -57,12 +57,12 @@ api-devops/
 
 Une fois l'application lancée, une documentation interactive (Swagger UI) est auto-générée sur `/docs`.
 
-| Méthode | Route | Description | Règle métier |
-|---|---|---|---|
-| `GET` | `/` | Vérification de l'état du serveur | N/A |
-| `POST` | `/pokemon/` | Ajoute un Pokémon à l'équipe | Rejeté (400) si l'équipe a déjà 6 membres |
-| `GET` | `/team/` | Récupère la liste de l'équipe | N/A |
-| `GET` | `/team/count/{type}` | Compte les Pokémon d'un type précis | Vérifie `type_1` et `type_2` |
+| Méthode | Route                | Description                         | Règle métier                              |
+| ------- | -------------------- | ----------------------------------- | ----------------------------------------- |
+| `GET`   | `/`                  | Vérification de l'état du serveur   | N/A                                       |
+| `POST`  | `/pokemon/`          | Ajoute un Pokémon à l'équipe        | Rejeté (400) si l'équipe a déjà 6 membres |
+| `GET`   | `/team/`             | Récupère la liste de l'équipe       | N/A                                       |
+| `GET`   | `/team/count/{type}` | Compte les Pokémon d'un type précis | Vérifie `type_1` et `type_2`              |
 
 ### Modèle Pokemon
 
@@ -76,13 +76,13 @@ Une fois l'application lancée, une documentation interactive (Swagger UI) est a
 }
 ```
 
-| Champ | Type | Requis | Défaut |
-|---|---|---|---|
-| `id` | int | oui | — |
-| `name` | str | oui | — |
-| `type_1` | str | oui | — |
-| `type_2` | str \| null | non | `null` |
-| `level` | int | non | `50` |
+| Champ    | Type        | Requis | Défaut |
+| -------- | ----------- | ------ | ------ |
+| `id`     | int         | oui    | —      |
+| `name`   | str         | oui    | —      |
+| `type_1` | str         | oui    | —      |
+| `type_2` | str \| null | non    | `null` |
+| `level`  | int         | non    | `50`   |
 
 ---
 
@@ -126,6 +126,7 @@ pytest
 ```
 
 Les tests couvrent :
+
 - Ajout d'un Pokémon avec succès
 - Limite de 6 Pokémon par équipe (erreur 400)
 - Comptage par type
@@ -148,18 +149,21 @@ L'API est packagée dans un conteneur Linux allégé pour garantir un comporteme
 # 1. Image de base allégée
 FROM python:3.11-slim
 ```
+
 On part d'une image Linux minimale avec Python déjà installé. La variante `-slim` pèse ~50 Mo contre ~900 Mo pour l'image complète — idéal pour un déploiement rapide.
 
 ```dockerfile
 # 2. Sécurité : Création d'un utilisateur non-root
 RUN adduser --disabled-password --gecos '' api-user
 ```
+
 Par défaut Docker exécute tout en `root`, ce qui est dangereux. On crée un utilisateur sans mot de passe ni droits système. Si l'API est compromise, l'attaquant est bloqué dans un compte restreint.
 
 ```dockerfile
 # 3. Dossier de travail dans le conteneur
 WORKDIR /app
 ```
+
 Définit `/app` comme répertoire courant dans le conteneur. Toutes les commandes suivantes s'exécutent depuis cet emplacement.
 
 ```dockerfile
@@ -167,12 +171,14 @@ Définit `/app` comme répertoire courant dans le conteneur. Toutes les commande
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 ```
+
 Docker construit l'image couche par couche et met chaque couche en cache. En copiant `requirements.txt` **avant** le code source, on évite de réinstaller toutes les dépendances à chaque fois qu'on modifie `main.py`. Le flag `--no-cache-dir` évite que pip stocke des fichiers temporaires inutiles dans l'image.
 
 ```dockerfile
 # 5. Copie du code source
 COPY . .
 ```
+
 Copie tout le projet dans `/app`. Le fichier `.dockerignore` empêche le dossier `venv` local d'être copié (il serait incompatible avec l'OS du conteneur).
 
 ```dockerfile
@@ -180,18 +186,21 @@ Copie tout le projet dans `/app`. Le fichier `.dockerignore` empêche le dossier
 RUN chown -R api-user:api-user /app
 USER api-user
 ```
+
 On donne la propriété des fichiers à `api-user`, puis on bascule sur ce compte. À partir d'ici, tout s'exécute sans privilèges root.
 
 ```dockerfile
 # 7. Documentation du port
 EXPOSE 8000
 ```
+
 Indique que le conteneur écoute sur le port 8000. C'est documentaire — le port n'est pas ouvert automatiquement, c'est le `-p 8000:8000` du `docker run` qui fait le pont.
 
 ```dockerfile
 # 8. Commande de démarrage
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
+
 Commande lancée au démarrage du conteneur. `--host 0.0.0.0` est indispensable : sans ça, Uvicorn n'écoute que sur `localhost` à l'intérieur du conteneur, et aucune requête extérieure ne peut l'atteindre.
 
 **Commandes :**
@@ -204,14 +213,19 @@ docker build -t api-pokemon .
 docker run -p 8000:8000 api-pokemon
 ```
 
----
+## Ajout d'un Linter
+
+Un linter lit ton code et vérifie s'il respecte les standards de formatage (pas de variables inutilisées, bonne indentation, etc.). Nous allons utiliser Ruff, qui est l'outil le plus moderne et rapide actuellement.
+
+pip install ruff
+pip freeze > requirements.txt
 
 ## Roadmap DevOps
 
-| Semaine | Thème | Statut |
-|---|---|---|
-| 1 | Fondation Python + FastAPI | Terminé |
-| 2 | Tests unitaires avec pytest | Terminé |
-| 3 | Conteneurisation Docker | Terminé |
-| 4 | CI/CD avec GitHub Actions | À venir |
-| 5 | Déploiement Cloud automatisé | À venir |
+| Semaine | Thème                        | Statut  |
+| ------- | ---------------------------- | ------- |
+| 1       | Fondation Python + FastAPI   | Terminé |
+| 2       | Tests unitaires avec pytest  | Terminé |
+| 3       | Conteneurisation Docker      | Terminé |
+| 4       | CI/CD avec GitHub Actions    | À venir |
+| 5       | Déploiement Cloud automatisé | À venir |
